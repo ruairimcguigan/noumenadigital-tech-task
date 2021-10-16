@@ -13,7 +13,8 @@
   "license": "ISC",
   "dependencies": {
     "csv-string": "^4.0.1",
-    "glob": "^7.1.7"
+    "glob": "^7.1.7",
+    "moment": "^2.29.1"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
