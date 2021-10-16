@@ -12,6 +12,7 @@
   "author": "Ruairi McGuigan",
   "license": "ISC",
   "dependencies": {
+    "csv-string": "^4.0.1",
     "glob": "^7.1.7"
   },
   "devDependencies": {

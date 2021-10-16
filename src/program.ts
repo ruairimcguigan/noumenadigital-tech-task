@@ -1,4 +1,5 @@
-import * as fs from "fs";
+import * as fs from "fs"
+import * as CSV from 'csv-string'
 
 interface Customer {
   name: string
@@ -9,12 +10,12 @@ interface Customer {
   birthday: string
 }
 
+const headers = ["Name", "Address", "Postcode", "Phone", "Credit Limit", "Birthday"]
+
 export const program = (args: string[]): void => {
   if ((args.length - 2 < 2)) throw Error(`args expected=2 got=${args.length - 2}`)
-  if (args[2] !== "csv" && args[2] !== "prn") throw Error(`arg[0] expected=csv|prn got=${args[2]}`)
-  if (args[3] !== "json" && args[3] !== "html") throw Error(`arg[1] expected=json|html got=${args[3]}`)
-  const customers = readCustomers(args[2], fs.readFileSync(0).toString())
-  console.dir(customers)
+  const customers = readCustomers(args[2], fs.readFileSync(0, { encoding: "latin1" }).toString())
+  writeCustomers(args[3], headers, customers)
 }
 
 const readCustomers = (arg0: string, stdin: string): Customer[] => {
@@ -28,18 +29,57 @@ const readCustomers = (arg0: string, stdin: string): Customer[] => {
   }
 }
 
-const readCsv = (stdin: string): Customer[] => {
-  throw Error(`CSV reading not supported: got=${stdin}`)
-}
+const readCsv = (stdin: string): Customer[] => CSV.parse(stdin)
+    .map((row) => ({
+      name: row[0],
+      address: row[1],
+      postcode: row[2],
+      phone: row[3],
+      creditLimit: row[4],
+      birthday: row[5]
+    })).slice(1)
 
 const readPrn = (stdin: string): Customer[] => {
   throw Error(`CSV reading not supported: got=${stdin}`)
 }
 
-const writeJson = (customers: Customer[]) => {
-  console.dir(customers)
+const writeCustomers = (arg1: string, headers: string[], customers: Customer[]) => {
+  switch (arg1) {
+    case "json":
+      return writeJson(customers)
+    case "html":
+      return writeHtml(headers, customers)
+    default:
+      throw Error(`arg[1] expected=json|html got=${arg1}`)
+  }
 }
 
-const writeHtml = (customers: Customer[]) => {
-  console.dir(customers)
+const writeJson = (customers: Customer[]) => {
+  process.stdout.write(JSON.stringify(customers))
+}
+
+const writeHtml = (headers: string[], customers: Customer[]) => {
+  process.stdout.write(`
+    <html>
+      <head>
+        <title>Workbook</title>
+      </head>
+      <body>
+        <table>
+          <tr>
+            ${headers.map((header) => `<th>${header}</th>`).join("")}
+          </tr>
+          ${customers.map((customer) => `
+          <tr>
+            <td>${customer.name}</td>
+            <td>${customer.address}</td>
+            <td>${customer.postcode}</td>
+            <td>${customer.phone}</td>
+            <td>${customer.creditLimit}</td>
+            <td>${customer.birthday}</td>
+          </tr>`).join("")}
+        </table>
+      </body>
+    </html>
+  `)
 }
